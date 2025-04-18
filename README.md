@@ -8,20 +8,6 @@ Advanced Network Packet Analyzer, Decryptor, and Manipulator v1.6.1 for windows 
 
 (WIP)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Captures packets
 Decrypts the packets
 Deserializes the packets
