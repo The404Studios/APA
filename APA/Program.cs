@@ -103,9 +103,9 @@ namespace AdvancedPacketAnalyzer
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝   ╚══════╝╚══════╝╚═╝  ╚═╝       
             ");
             Console.ResetColor();
-            Console.WriteLine("\nAdvanced Network Packet Analyzer, Decryptor, and Manipulator v1.6.2");
+            Console.WriteLine("\nAdvanced Network Packet Analyzer, Decryptor, and Manipulator v1.6.4");
             Console.WriteLine("--------------------------------------------------------\n");
-            Console.WriteLine("-------------http://localhost:8080 for the web UI-------\n");
+            Console.WriteLine("-by-404-------http://localhost:8080 for the web UI------\n");
             Console.WriteLine("--------------------------------------------------------\n");
 
             // Initialize web server
@@ -470,6 +470,7 @@ namespace AdvancedPacketAnalyzer
         {
             try
             {
+                // First try basic detection with common ports
                 // Check for common ports
                 switch (container.DestinationPort)
                 {
@@ -542,13 +543,13 @@ namespace AdvancedPacketAnalyzer
                             container.IsEncrypted = true;
                         break;
                     default:
-                        // For non-standard ports, try to detect based on payload
-                        DetectProtocolFromPayload(container);
+                        // For non-standard ports, use advanced detection
+                        container.ApplicationProtocol = "UNKNOWN";
                         break;
                 }
 
                 // Also check source port for server responses
-                if (string.IsNullOrEmpty(container.ApplicationProtocol))
+                if (string.IsNullOrEmpty(container.ApplicationProtocol) || container.ApplicationProtocol == "UNKNOWN")
                 {
                     switch (container.SourcePort)
                     {
@@ -564,6 +565,25 @@ namespace AdvancedPacketAnalyzer
                             break;
                             // Add other protocols as needed
                     }
+                }
+
+                // If we have payload data, use the advanced protocol identifier
+                if (container.PayloadData != null && container.PayloadData.Length > 0 &&
+                    (string.IsNullOrEmpty(container.ApplicationProtocol) ||
+                     container.ApplicationProtocol == "UNKNOWN" ||
+                     container.ApplicationProtocol == "BINARY"))
+                {
+                    // Use our advanced protocol detection
+                    container.IdentifyProtocol();
+                }
+
+                // If we still don't have a protocol and have payload data, use the simple detection
+                if ((string.IsNullOrEmpty(container.ApplicationProtocol) ||
+                    container.ApplicationProtocol == "UNKNOWN") &&
+                    container.PayloadData != null && container.PayloadData.Length > 0)
+                {
+                    // Fall back to simple payload-based detection
+                    DetectProtocolFromPayload(container);
                 }
             }
             catch (Exception ex)
@@ -1298,6 +1318,9 @@ namespace AdvancedPacketAnalyzer
         // Decryption data
         public byte[] DecryptionKey { get; set; }
         public byte[] InitializationVector { get; set; }
+
+        // Additional metadata and detection information
+        public Dictionary<string, string> AdditionalInfo { get; set; }
     }
 
     /// <summary>

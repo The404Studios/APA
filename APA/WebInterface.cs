@@ -313,7 +313,8 @@ namespace AdvancedPacketAnalyzer
                 WasDecrypted = p.WasDecrypted,
                 Time = p.CaptureTime.ToString("HH:mm:ss.fff"),
                 Status = p.PacketStatus.ToString(),
-                HasErrors = p.HasErrors
+                HasErrors = p.HasErrors,
+                AdditionalInfo = p.AdditionalInfo
             }).ToList();
 
             string json = JsonConvert.SerializeObject(packets);
@@ -1554,6 +1555,24 @@ namespace AdvancedPacketAnalyzer
                         <span class=""detail-value ${packet.wasDecrypted ? 'text-success' : 'text-danger'}"">
                             ${packet.wasDecrypted ? 'Yes' : 'No'}
                         </span>
+                    </div>
+                    ` : ''}
+                    ${packet.additionalInfo && packet.additionalInfo.ProtocolConfidence ? `
+                    <div class=""detail-item"">
+                        <span class=""detail-label"">Detection Confidence</span>
+                        <span class=""detail-value"">${packet.additionalInfo.ProtocolConfidence}</span>
+                    </div>
+                    ` : ''}
+                    ${packet.additionalInfo && packet.additionalInfo.IdentificationMethod ? `
+                    <div class=""detail-item"">
+                        <span class=""detail-label"">Detection Method</span>
+                        <span class=""detail-value"">${packet.additionalInfo.IdentificationMethod}</span>
+                    </div>
+                    ` : ''}
+                    ${packet.additionalInfo && packet.additionalInfo.EncryptionType ? `
+                    <div class=""detail-item"">
+                        <span class=""detail-label"">Encryption Type</span>
+                        <span class=""detail-value"">${packet.additionalInfo.EncryptionType}</span>
                     </div>
                     ` : ''}
                 </div>
