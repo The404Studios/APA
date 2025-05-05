@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SharpPcap;
 
 namespace AdvancedPacketAnalyzer
 {
@@ -29,7 +28,6 @@ namespace AdvancedPacketAnalyzer
         // IP tracking and filtering
         private Dictionary<string, int> _ipAddressStats = new Dictionary<string, int>();
         private List<string> _activeIpAddresses = new List<string>();
-        public static readonly List<ICaptureDevice> CaptureDevices = new List<ICaptureDevice>();
         private string _selectedIpAddress = null;
         private bool _filterByIp = false;
 
@@ -61,21 +59,37 @@ namespace AdvancedPacketAnalyzer
 
         public void Start()
         {
-            _listener.Start();
-            _serverThread.Start();
-            Console.WriteLine($"Web interface started at {_url}");
-            Console.WriteLine("Open the above URL in a browser to view the dashboard");
+            try
+            {
+                _listener.Start();
+                _serverThread.Start();
+                Console.WriteLine($"Web interface started at {_url}");
+                Console.WriteLine("Open the above URL in a browser to view the dashboard");
 
-            // Start packet processing thread
-            var processingThread = new Thread(ProcessPackets);
-            processingThread.IsBackground = true;
-            processingThread.Start();
+                // Start packet processing thread
+                var processingThread = new Thread(ProcessPackets);
+                processingThread.IsBackground = true;
+                processingThread.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error starting web server: {ex.Message}");
+                Console.WriteLine("Make sure you're running as Administrator and port 8080 is available");
+            }
         }
 
         public void Stop()
         {
             _isRunning = false;
-            _listener.Stop();
+            try
+            {
+                _listener.Stop();
+                _listener.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error stopping web server: {ex.Message}");
+            }
         }
 
         // Process any captured packets
@@ -174,7 +188,7 @@ namespace AdvancedPacketAnalyzer
                 try
                 {
                     var context = _listener.GetContext();
-                    ProcessRequest(context);
+                    ThreadPool.QueueUserWorkItem((_) => ProcessRequest(context));
                 }
                 catch (Exception ex)
                 {
@@ -340,15 +354,15 @@ namespace AdvancedPacketAnalyzer
         {
             try
             {
-                var devices = Program.CaptureDevices.Select(d => new
+                var devices = Program.CaptureDevices.Select((d, index) => new
                 {
+                    Index = index,
                     Name = d?.Name ?? "unknown",
                     Description = d?.Description ?? d?.Name ?? "unknown device",
                     IsActive = d != null && d.Started
                 }).ToList();
 
                 string json = JsonConvert.SerializeObject(devices);
-                Console.WriteLine($"Serving device info: {json}"); // Debugging
 
                 context.Response.ContentType = "application/json";
                 context.Response.ContentEncoding = Encoding.UTF8;
@@ -1375,7 +1389,7 @@ namespace AdvancedPacketAnalyzer
                                 <span>${device.description || device.name}</span>
                             </div>
                             <button class=""btn ${device.isActive ? 'btn-danger' : 'btn-success'}"" 
-                                    data-device=""${devices.indexOf(device)}""
+                                    data-device=""${device.index}""
                                     data-action=""${device.isActive ? 'stop' : 'start'}"">
                                 <i class=""fas fa-${device.isActive ? 'stop' : 'play'}""></i>
                             </button>
@@ -1574,20 +1588,20 @@ namespace AdvancedPacketAnalyzer
         
         // Update statistics
         function updateStats(stats) {
-            totalPacketsEl.textContent = stats.totalPackets;
-            encryptedPacketsEl.textContent = stats.encryptedPackets;
-            decryptedPacketsEl.textContent = stats.decryptedPackets;
-            errorPacketsEl.textContent = stats.totalPackets - (stats.encryptedPackets + stats.decryptedPackets);
+            totalPacketsEl.textContent = stats.TotalPackets;
+            encryptedPacketsEl.textContent = stats.EncryptedPackets;
+            decryptedPacketsEl.textContent = stats.DecryptedPackets;
+            errorPacketsEl.textContent = stats.TotalPackets - (stats.EncryptedPackets + stats.DecryptedPackets);
             
             // Update chart
-            if (stats.protocolStats) {
+            if (stats.ProtocolStats) {
                 const data = [
-                    stats.protocolStats.HTTP || 0,
-                    stats.protocolStats.HTTPS || 0,
-                    stats.protocolStats.DNS || 0,
-                    stats.protocolStats.TCP || 0,
-                    stats.protocolStats.UDP || 0,
-                    stats.protocolStats.Other || 0
+                    stats.ProtocolStats.HTTP || 0,
+                    stats.ProtocolStats.HTTPS || 0,
+                    stats.ProtocolStats.DNS || 0,
+                    stats.ProtocolStats.TCP || 0,
+                    stats.ProtocolStats.UDP || 0,
+                    stats.ProtocolStats.Other || 0
                 ];
                 
                 protocolChart.data.datasets[0].data = data;

@@ -1993,11 +1993,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\thewi\\source\\repos\\APA\\APA\\APA.csproj",
+      "projectUniqueName": "C:\\Users\\thewi\\Documents\\GitHub\\APA\\APA\\APA.csproj",
       "projectName": "APA",
-      "projectPath": "C:\\Users\\thewi\\source\\repos\\APA\\APA\\APA.csproj",
+      "projectPath": "C:\\Users\\thewi\\Documents\\GitHub\\APA\\APA\\APA.csproj",
       "packagesPath": "C:\\Users\\thewi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\thewi\\source\\repos\\APA\\APA\\obj\\",
+      "outputPath": "C:\\Users\\thewi\\Documents\\GitHub\\APA\\APA\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

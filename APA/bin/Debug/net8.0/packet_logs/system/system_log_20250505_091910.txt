@@ -1,0 +1,4 @@
+=== System Log Started at 5/5/2025 9:19:10 AM ===
+
+[2025-05-05 09:19:10.195] [Info] Initializing capture devices...
+[2025-05-05 09:19:24.501] [Error] Invalid device selection. Exiting.
